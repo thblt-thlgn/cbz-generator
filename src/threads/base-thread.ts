@@ -1,5 +1,10 @@
 import { workerData, isMainThread, parentPort, threadId } from 'worker_threads';
 
+export interface ThreadOutput {
+  threadId: number;
+  [key: string]: any;
+}
+
 export abstract class BaseThread {
   protected data = workerData;
   protected threadId = threadId;
@@ -23,5 +28,5 @@ export abstract class BaseThread {
     });
   }
 
-  protected abstract async process(toProcess: any): Promise<any>;
+  protected abstract async process(toProcess: unknown): Promise<ThreadOutput>;
 }

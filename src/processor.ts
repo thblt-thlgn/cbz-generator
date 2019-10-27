@@ -1,4 +1,5 @@
 import { EventEmitter } from 'events';
+import { ThreadOutput } from './threads/base-thread';
 
 const { Worker, isMainThread } = require('worker_threads');
 export class Processor {
@@ -23,8 +24,8 @@ export class Processor {
 
       this.runningThreads += 1;
 
-      worker.on('message', (message: any) => {
-        this.eventEmitter.emit('itemProcessed', message);
+      worker.on('message', (output: ThreadOutput) => {
+        this.eventEmitter.emit('itemProcessed', output);
         this.process(worker);
       });
 
@@ -56,7 +57,7 @@ export class Processor {
   public on(
     eventName: 'itemProcessed' | 'threadError' | 'end',
     listener: (...args: any[]) => any,
-  ) {
+  ): EventEmitter {
     return this.eventEmitter.on(eventName, listener);
   }
 }

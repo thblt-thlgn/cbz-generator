@@ -1,11 +1,11 @@
-import { BaseThread } from './base-thread';
+import { BaseThread, ThreadOutput } from './base-thread';
 
 class CBZGenerator extends BaseThread {
   constructor() {
     super();
   }
 
-  process(toProcess: any) {
+  process(toProcess: string): Promise<ThreadOutput> {
     const response = {
       threadId: this.threadId,
       message: toProcess,

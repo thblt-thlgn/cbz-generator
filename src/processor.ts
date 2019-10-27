@@ -1,18 +1,16 @@
 import { EventEmitter } from 'events';
 
 const { Worker, isMainThread } = require('worker_threads');
-
-export class Processor extends EventEmitter {
+export class Processor {
   private workers: Worker[] = [];
   private runningWorkers = 0;
+  private eventEmitter = new EventEmitter();
 
   constructor(
     private data: any[],
     private threadName: string,
     private threadCount: number = 1,
   ) {
-    super();
-
     if (!isMainThread) {
       throw new Error('Cannot be started from thread');
     }
@@ -25,18 +23,18 @@ export class Processor extends EventEmitter {
       this.runningWorkers += 1;
 
       worker.on('message', (message: any) => {
-        this.emit('itemProcessed', message);
+        this.eventEmitter.emit('itemProcessed', message);
         this.process(worker);
       });
 
       worker.on('error', (err: Error) => {
-        this.emit('threadError', err);
+        this.eventEmitter.emit('threadError', err);
       });
 
       worker.on('exit', () => {
         this.runningWorkers -= 1;
         if (this.runningWorkers === 0) {
-          this.emit('end');
+          this.eventEmitter.emit('end');
         }
       });
 
@@ -52,5 +50,12 @@ export class Processor extends EventEmitter {
     } else {
       worker.terminate();
     }
+  }
+
+  public on(
+    eventName: 'itemProcessed' | 'threadError' | 'end',
+    listener: (...args: any[]) => any,
+  ) {
+    return this.eventEmitter.on(eventName, listener);
   }
 }

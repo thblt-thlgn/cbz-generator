@@ -1,11 +1,9 @@
-import { Readable } from 'stream';
+import { EventEmitter } from 'events';
 
 const { Worker, isMainThread } = require('worker_threads');
 
-export class Processor {
+export class Processor extends EventEmitter {
   private workers: Worker[] = [];
-  private stream: Readable = new Readable({ read: () => {} });
-  private status: 'awaiting' | 'running' | 'ended' = 'awaiting';
   private runningWorkers = 0;
 
   constructor(
@@ -13,6 +11,8 @@ export class Processor {
     private threadName: string,
     private threadCount: number = 1,
   ) {
+    super();
+
     if (!isMainThread) {
       throw new Error('Cannot be started from thread');
     }
@@ -25,37 +25,32 @@ export class Processor {
       this.runningWorkers += 1;
 
       worker.on('message', (message: any) => {
-        this.stream.push(JSON.stringify(message));
+        this.emit('itemProcessed', message);
         this.process(worker);
       });
 
-      worker.on('error', console.error);
+      worker.on('error', (err: Error) => {
+        this.emit('threadError', err);
+      });
+
       worker.on('exit', () => {
-        console.log('exit worker');
         this.runningWorkers -= 1;
         if (this.runningWorkers === 0) {
-          this.stream.push(null);
-          this.status = 'ended';
+          this.emit('end');
         }
       });
 
       this.workers.push(worker);
     }
+
+    this.workers.forEach(this.process);
   }
 
   private process = (worker: Worker) => {
     if (this.data.length > 0) {
       worker.postMessage(this.data.shift());
-    } else if (this.status === 'running') {
+    } else {
       worker.terminate();
     }
-  }
-
-  public start(): Readable {
-    if (this.status === 'awaiting') {
-      this.workers.forEach(this.process);
-      this.status = 'running';
-    }
-    return this.stream;
   }
 }

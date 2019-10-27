@@ -5,14 +5,13 @@ const processor = new Processor(
   'cbz-generator',
   5,
 );
-const stream = processor.start();
 
-stream.on('data', x => {
-  console.log(x.toString());
+processor.on('itemProcessed', x => {
+  console.log(x);
 });
-stream.on('close', () => {
-  console.log('close');
+processor.on('threadError', () => {
+  console.log('threadError');
 });
-stream.on('end', () => {
+processor.on('end', () => {
   console.log('end');
 });

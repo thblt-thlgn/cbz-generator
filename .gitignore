@@ -59,3 +59,10 @@ typings/
 
 # next.js build output
 .next
+
+# Project related files / folders
+dist
+types
+!src/ts/types
+logs
+*.tgz

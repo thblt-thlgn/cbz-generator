@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "resolveJsonModule": true,
+    "target": "es6",
+    "moduleResolution": "node",
+    "sourceMap": false,
+    "declarationDir": "types",
+    "outDir": "dist",
+    "baseUrl": ".",
+    "lib": ["es2018", "dom"],
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": false,
+    "noUnusedParameters": false,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": true,
+    "strictBindCallApply": true,
+    "removeComments": true,
+    "declaration": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules"]
+}

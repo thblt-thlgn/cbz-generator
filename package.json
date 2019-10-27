@@ -1,0 +1,37 @@
+{
+  "name": "cbz-generator",
+  "version": "1.0.0",
+  "description": "Generate CBZ from image urls",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:ts": "tsc",
+    "clean": "rimraf dist types *.tgz",
+    "build": "npm-run-all clean build:ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thibault-nobbas/cbz-generator.git"
+  },
+  "dependencies": {
+    "@types/node": "^12.11.7",
+    "archiver": "^3.1.1",
+    "async": "^3.1.0",
+    "axios": "^0.19.0",
+    "cheerio": "^1.0.0-rc.3",
+    "npm-run-all": "^4.1.5",
+    "rimraf": "^3.0.0",
+    "typescript": "^3.6.4"
+  },
+  "devDependencies": {
+    "tslint": "^5.20.0",
+    "tslint-config-airbnb": "^5.11.2",
+    "tslint-eslint-rules": "^5.4.0"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/thibault-nobbas/cbz-generator/issues"
+  },
+  "homepage": "https://github.com/thibault-nobbas/cbz-generator#readme"
+}

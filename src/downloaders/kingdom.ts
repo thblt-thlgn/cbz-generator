@@ -36,11 +36,11 @@ export const start = async () => {
   const chapters = await retrieveChapters();
   const processor = new Processor(chapters.slice(0, 20), 'cbz-kingdom', 5);
 
-  processor.on('itemProcessed', x => {
-    console.log(x);
+  processor.on('itemProcessed', data => {
+    console.log(`success - ${data.chapter.title} - thread ${data.threadId}`);
   });
   processor.on('threadError', error => {
-    console.log('threadError', error);
+    console.error(error);
   });
   processor.on('end', () => {
     console.log('end');

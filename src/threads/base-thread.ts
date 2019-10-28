@@ -18,15 +18,17 @@ export abstract class BaseThread {
       try {
         const result = await this.process(value);
         parentPort!.postMessage({
-          result,
+          ...result,
+          threadId: this.threadId,
         });
       } catch (e) {
         parentPort!.postMessage({
           error: e,
+          threadId: this.threadId,
         });
       }
     });
   }
 
-  protected abstract async process(toProcess: unknown): Promise<ThreadOutput>;
+  protected abstract async process(toProcess: unknown): Promise<Object>;
 }

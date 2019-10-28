@@ -5,6 +5,7 @@ import { Chapter } from 'src/downloaders/kingdom';
 import { ThreadOutput } from './base-thread';
 import { CBZGenerator } from './cbz-generator';
 
+const MAX_RETRY = 3;
 const ROOT_DIR = path.resolve();
 const DOWNLOAD_LOCATION = `${ROOT_DIR}/download/kingdom`;
 const CBR_LOCATION = `${ROOT_DIR}/ebook/kingdom`;
@@ -16,33 +17,52 @@ class CBZKingdom extends CBZGenerator {
     this.createDir(CBR_LOCATION);
   }
 
-  async process(chapter: Chapter): Promise<ThreadOutput> {
-    const downloadFolder = `${DOWNLOAD_LOCATION}/${chapter.chapter}`;
-    const cbrLocation = `${CBR_LOCATION}/${chapter.title}.cbz`;
-    const urls = await this.retrieveImageURLs(chapter);
+  async process(chapter: Chapter): Promise<Object> {
+    return this.retryPolicy(chapter, MAX_RETRY);
+  }
 
-    const downloadImages = urls.map((url, index) =>
-      this.downloadImage({
-        url,
-        directory: downloadFolder,
-        fileName: `${this.prefixNumber(index, 2)}.png`,
-      }),
-    );
-    await Promise.all(downloadImages);
+  private async retryPolicy(
+    chapter: Chapter,
+    tryCounts: number,
+  ): Promise<Object> {
+    try {
+      const downloadFolder = `${DOWNLOAD_LOCATION}/${chapter.chapter}`;
+      const cbrLocation = `${CBR_LOCATION}/${chapter.title}.cbz`;
+      const urls = await this.retrieveImageURLs(chapter);
 
-    await this.generateCBR({
-      cbrLocation,
-      imageDirectory: downloadFolder,
-    });
+      const downloadImages = urls.map((url, index) =>
+        this.downloadImage({
+          url,
+          directory: downloadFolder,
+          fileName: `${this.prefixNumber(index, 2)}.png`,
+        }),
+      );
+      await Promise.all(downloadImages);
 
-    this.removeDir(downloadFolder);
+      await this.generateCBR({
+        cbrLocation,
+        imageDirectory: downloadFolder,
+      });
 
-    return {
-      chapter,
-      urls,
-      cbrLocation,
-      threadId: this.threadId,
-    };
+      this.removeDir(downloadFolder);
+
+      return {
+        chapter,
+        urls,
+        cbrLocation,
+      };
+    } catch (e) {
+      if (tryCounts > 0) {
+        const retry = MAX_RETRY - tryCounts + 1;
+        console.error(
+          `error - ${chapter.title} - retry ${retry} / ${MAX_RETRY}`,
+        );
+        console.error(e.message);
+        return this.retryPolicy(chapter, tryCounts - 1);
+      }
+
+      throw e;
+    }
   }
 
   private async retrieveImageURLs(chapter: Chapter): Promise<string[]> {

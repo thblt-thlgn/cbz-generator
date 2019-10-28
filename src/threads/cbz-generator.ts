@@ -63,4 +63,10 @@ export abstract class CBZGenerator extends BaseThread {
       ? this.prefixNumber(`0${asString}`, expectedLenght)
       : asString;
   }
+
+  protected sleep(time: number): Promise<unknown> {
+    return new Promise(resolve => {
+      setTimeout(resolve, time);
+    });
+  }
 }

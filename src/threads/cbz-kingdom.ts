@@ -2,7 +2,6 @@ import * as cheerio from 'cheerio';
 import * as path from 'path';
 import axios from 'axios';
 import { Chapter } from 'src/downloaders/kingdom';
-import { ThreadOutput } from './base-thread';
 import { CBZGenerator } from './cbz-generator';
 
 const MAX_RETRY = 3;

@@ -32,9 +32,9 @@ const retrieveChapters = async (): Promise<Chapter[]> => {
   );
 };
 
-export const start = async () => {
+export const start = async (threads: number = 5) => {
   const chapters = await retrieveChapters();
-  const processor = new Processor(chapters.slice(0, 20), 'cbz-kingdom', 5);
+  const processor = new Processor(chapters, 'cbz-kingdom', threads);
 
   processor.on('itemProcessed', data => {
     console.log(`success - ${data.chapter.title} - thread ${data.threadId}`);

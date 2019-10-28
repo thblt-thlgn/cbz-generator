@@ -17,10 +17,13 @@ export abstract class CBZGenerator extends BaseThread {
     const { url, directory, fileName } = params;
     this.createDir(directory);
     const filePath = `${directory}/${fileName}`;
-    const { data } = await axios.get(url, {
-      responseType: 'arraybuffer',
-    });
-    fs.writeFileSync(filePath, Buffer.from(data, 'binary'));
+
+    if (!fs.existsSync(filePath)) {
+      const { data } = await axios.get(url, {
+        responseType: 'arraybuffer',
+      });
+      fs.writeFileSync(filePath, Buffer.from(data, 'binary'));
+    }
   }
 
   protected generateCBR(params: {

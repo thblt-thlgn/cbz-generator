@@ -9,35 +9,31 @@ class CBZKingdom extends BaseThread {
   }
 
   async process(chapter: Chapter): Promise<ThreadOutput> {
-    const pages = await this.retrievePageURLs(chapter);
-    const urls = await Promise.all(
-      pages.map(page => this.retrieveImageUrl(page)),
-    );
+    const urls = await this.retrieveImageURLs(chapter);
 
     return {
       chapter,
-      pages,
       urls,
       threadId: this.threadId,
     };
   }
 
-  private async retrievePageURLs(chapter: Chapter): Promise<string[]> {
+  private async retrieveImageURLs(chapter: Chapter): Promise<string[]> {
     const { data } = await axios.get(chapter.url);
     const $ = cheerio.load(data);
-    const totalPages = $('#page-list').children().length;
-    const pageUrls = [];
-    for (let i = 1; i <= totalPages; i += 1) {
-      pageUrls.push(`${chapter.url}/${i}`);
-    }
-    return pageUrls;
-  }
+    const tags = $('#all > .img-responsive');
 
-  private async retrieveImageUrl(pageUrl: string): Promise<string> {
-    const { data } = await axios.get(pageUrl);
-    const $ = cheerio.load(data);
-    console.log(pageUrl, $('#ppp > a > img')[0]);
-    return $('#ppp > a > img')[0].attribs.src;
+    return Object.entries(tags).reduce(
+      (accumulator, [key, value]) => {
+        if (isNaN(parseInt(key, 10))) {
+          return accumulator;
+        }
+
+        accumulator.push(value.attribs['data-src']);
+        return accumulator;
+      },
+      [] as string[],
+    );
   }
 }
 

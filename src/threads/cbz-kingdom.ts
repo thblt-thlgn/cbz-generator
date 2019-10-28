@@ -1,10 +1,11 @@
 import * as cheerio from 'cheerio';
 import * as path from 'path';
+import * as fs from 'fs';
 import axios from 'axios';
 import { Chapter } from 'src/downloaders/kingdom';
 import { CBZGenerator } from './cbz-generator';
 
-const MAX_RETRY = 3;
+const MAX_RETRY = 5;
 const ROOT_DIR = path.resolve();
 const DOWNLOAD_LOCATION = `${ROOT_DIR}/download/kingdom`;
 const CBR_LOCATION = `${ROOT_DIR}/ebook/kingdom`;
@@ -29,19 +30,22 @@ class CBZKingdom extends CBZGenerator {
       const cbrLocation = `${CBR_LOCATION}/${chapter.title}.cbz`;
       const urls = await this.retrieveImageURLs(chapter);
 
-      const downloadImages = urls.map((url, index) =>
-        this.downloadImage({
-          url,
-          directory: downloadFolder,
-          fileName: `${this.prefixNumber(index, 2)}.png`,
-        }),
-      );
-      await Promise.all(downloadImages);
 
-      await this.generateCBR({
-        cbrLocation,
-        imageDirectory: downloadFolder,
-      });
+      if (!fs.existsSync(cbrLocation)) {
+        const downloadImages = urls.map((url, index) =>
+          this.downloadImage({
+            url,
+            directory: downloadFolder,
+            fileName: `${this.prefixNumber(index, 2)}.png`,
+          }),
+        );
+        await Promise.all(downloadImages);
+
+        await this.generateCBR({
+          cbrLocation,
+          imageDirectory: downloadFolder,
+        });
+      }
 
       this.removeDir(downloadFolder);
 

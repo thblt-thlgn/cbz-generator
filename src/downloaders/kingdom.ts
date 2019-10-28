@@ -34,13 +34,13 @@ const retrieveChapters = async (): Promise<Chapter[]> => {
 
 export const start = async () => {
   const chapters = await retrieveChapters();
-  const processor = new Processor(chapters.slice(0, 1), 'cbz-kingdom', 5);
+  const processor = new Processor(chapters.slice(0, 20), 'cbz-kingdom', 5);
 
   processor.on('itemProcessed', x => {
     console.log(x);
   });
-  processor.on('threadError', () => {
-    console.log('threadError');
+  processor.on('threadError', error => {
+    console.log('threadError', error);
   });
   processor.on('end', () => {
     console.log('end');

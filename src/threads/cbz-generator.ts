@@ -1,5 +1,6 @@
 import * as fs from 'fs';
 import * as archiver from 'archiver';
+import * as rimraf from 'rimraf';
 import axios from 'axios';
 import { BaseThread } from './base-thread';
 
@@ -14,6 +15,7 @@ export abstract class CBZGenerator extends BaseThread {
     fileName: string;
   }) {
     const { url, directory, fileName } = params;
+    this.createDir(directory);
     const filePath = `${directory}/${fileName}`;
     const { data } = await axios.get(url, {
       responseType: 'arraybuffer',
@@ -22,14 +24,13 @@ export abstract class CBZGenerator extends BaseThread {
   }
 
   protected generateCBR(params: {
-    subDirectory: string;
-    fileName: string;
-    dowloadLocation: string;
+    imageDirectory: string;
+    cbrLocation: string;
   }): Promise<unknown> {
-    const { subDirectory, fileName, dowloadLocation } = params;
+    const { imageDirectory, cbrLocation } = params;
 
     return new Promise((resolve, reject) => {
-      const output = fs.createWriteStream(`${dowloadLocation}/${fileName}`);
+      const output = fs.createWriteStream(cbrLocation);
       const archive = archiver('zip', {
         zlib: { level: 9 },
       });
@@ -38,14 +39,28 @@ export abstract class CBZGenerator extends BaseThread {
       archive.on('error', reject);
 
       archive.pipe(output);
-      archive.directory(subDirectory, false);
+      archive.directory(imageDirectory, false);
       archive.finalize();
     });
   }
 
   protected createDir(dir: string): void {
     if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir);
+      fs.mkdirSync(dir, { recursive: true });
     }
+  }
+
+  protected removeDir(dir: string): void {
+    rimraf.sync(dir);
+  }
+
+  protected prefixNumber(
+    number: number | string,
+    expectedLenght: number,
+  ): string {
+    const asString = String(number);
+    return asString.length < expectedLenght
+      ? this.prefixNumber(`0${asString}`, expectedLenght)
+      : asString;
   }
 }

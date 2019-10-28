@@ -1,19 +1,46 @@
 import * as cheerio from 'cheerio';
+import * as path from 'path';
 import axios from 'axios';
 import { Chapter } from 'src/downloaders/kingdom';
-import { BaseThread, ThreadOutput } from './base-thread';
+import { ThreadOutput } from './base-thread';
+import { CBZGenerator } from './cbz-generator';
 
-class CBZKingdom extends BaseThread {
+const ROOT_DIR = path.resolve();
+const DOWNLOAD_LOCATION = `${ROOT_DIR}/download/kingdom`;
+const CBR_LOCATION = `${ROOT_DIR}/ebook/kingdom`;
+
+class CBZKingdom extends CBZGenerator {
   constructor() {
     super();
+    this.createDir(DOWNLOAD_LOCATION);
+    this.createDir(CBR_LOCATION);
   }
 
   async process(chapter: Chapter): Promise<ThreadOutput> {
+    const downloadFolder = `${DOWNLOAD_LOCATION}/${chapter.chapter}`;
+    const cbrLocation = `${CBR_LOCATION}/${chapter.title}.cbz`;
     const urls = await this.retrieveImageURLs(chapter);
+
+    const downloadImages = urls.map((url, index) =>
+      this.downloadImage({
+        url,
+        directory: downloadFolder,
+        fileName: `${this.prefixNumber(index, 2)}.png`,
+      }),
+    );
+    await Promise.all(downloadImages);
+
+    await this.generateCBR({
+      cbrLocation,
+      imageDirectory: downloadFolder,
+    });
+
+    this.removeDir(downloadFolder);
 
     return {
       chapter,
       urls,
+      cbrLocation,
       threadId: this.threadId,
     };
   }
@@ -29,7 +56,7 @@ class CBZKingdom extends BaseThread {
           return accumulator;
         }
 
-        accumulator.push(value.attribs['data-src']);
+        accumulator.push(value.attribs['data-src'].trim());
         return accumulator;
       },
       [] as string[],
